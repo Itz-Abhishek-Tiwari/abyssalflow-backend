@@ -7,3 +7,5 @@ services:
     envVars:
       - key: DATABASE_URL
         sync: false
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.dev
