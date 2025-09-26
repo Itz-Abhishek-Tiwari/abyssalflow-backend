@@ -21,9 +21,15 @@ class UserProfile(models.Model):
     department = models.CharField(
         max_length=100, blank=True, null=True
     )  # IT, HR, Admin, Management
+<<<<<<< Updated upstream
     avatar = models.TextField(
         max_length=100
     )  # image field fix it  # Store images properly
+=======
+    avatar = models.URLField(
+        max_length=500, blank=True, null=True
+    )  # ✅ Store Supabase URL # image field fix it  # Store images properly
+>>>>>>> Stashed changes
     bio = models.TextField(max_length=1000, blank=True, null=True)
 
     def __str__(self):
