@@ -16,7 +16,7 @@ class UserProfileView(APIView):
         avatar_file = request.FILES.get("avatar")
         if avatar_file:
             avatar_url = upload_avatar(avatar_file, avatar_file.name)
-            request.data["avatar"] = avatar_url  # replace file with URL
+            request.data["avatar"] = avatar_url
 
         serializer = UserProfileSerializer(data=request.data)
         if serializer.is_valid():
