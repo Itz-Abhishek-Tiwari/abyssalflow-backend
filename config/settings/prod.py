@@ -16,4 +16,4 @@ ALLOWED_HOSTS = os.getenv(
 ).split(",")
 
 
-DEBUG = False
+DEBUG = True
