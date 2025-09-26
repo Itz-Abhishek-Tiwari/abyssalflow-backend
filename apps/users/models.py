@@ -1,5 +1,6 @@
 from django.db import models
 import uuid
+from apps.files.models import FileUploadModel
 
 # Choices for user roles
 ROLE_CHOICES = [
@@ -21,9 +22,7 @@ class UserProfile(models.Model):
     department = models.CharField(
         max_length=100, blank=True, null=True
     )  # IT, HR, Admin, Management
-    avatar = models.TextField(
-        max_length=100
-    )  # image field fix it  # Store images properly
+    avatar = models.ImageField(upload_to="avatars/", null=True, blank=True)
     bio = models.TextField(max_length=1000, blank=True, null=True)
 
     def __str__(self):
