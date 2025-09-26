@@ -1,12 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-<<<<<<< Updated upstream
 from apps.users.models import UserProfile
-=======
 from rest_framework import status
 from integrations.supabase_client import upload_avatar
-from .models import UserProfile
->>>>>>> Stashed changes
 from .serializers import UserProfileSerializer
 
 
@@ -15,8 +11,6 @@ class UserProfileView(APIView):
         users = UserProfile.objects.all()
         serializer = UserProfileSerializer(users, many=True)
         return Response(serializer.data)
-<<<<<<< Updated upstream
-=======
 
     def post(self, request):
         avatar_file = request.FILES.get("avatar")
@@ -29,4 +23,9 @@ class UserProfileView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
->>>>>>> Stashed changes
+
+        serializer = UserProfileSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
