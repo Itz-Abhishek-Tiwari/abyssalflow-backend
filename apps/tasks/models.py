@@ -14,6 +14,7 @@ class Task(models.Model):
         choices=PRIORITY_CHOICE,
         default=PRIORITY_CHOICE[0][0],
     )
+    images = models.CharField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     comment = models.TextField(max_length=400, blank=True, null=True)
     deadline = models.DateField(blank=True, null=True)
