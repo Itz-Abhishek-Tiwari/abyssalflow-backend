@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "apps.tasks",
     "apps.users",
     "apps.approvals",
+    "apps.api_gateway",
 ]
 
 MIDDLEWARE = [
