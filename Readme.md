@@ -1,197 +1,185 @@
-# 📂 **Final Folder Structure – Detailed**
+# 🚀 Project Name
+
+Enterprise-ready Modular Monolith built with **Django + DRF**.
+
+This project follows a **Layered Architecture (Domain → Application → Infrastructure → Presentation)** to ensure:
+
+* Scalability
+* Team collaboration
+* Future microservice extraction
+* Clean separation of concerns
+* Maintainability
+
+---
+
+# 🏗 Architecture Overview
 
 ```
-backend/
-├── manage.py
-├── requirements.txt
-├── README.md
-├── config/
-│   ├── __init__.py
-│   ├── settings/
-│   │   ├── __init__.py
-│   │   ├── base.py              # Shared settings
-│   │   ├── dev.py               # Local dev config
-│   │   └── prod.py              # Prod config
-│   ├── urls.py
-│   ├── wsgi.py
-│   └── asgi.py
-├── apps/
-│   ├── users/                   # Supabase-authenticated users
-│   │   ├── models.py            # Extend Django user (profiles)
-│   │   ├── serializers.py
-│   │   ├── views.py
-│   │   ├── urls.py
-│   │   ├── services.py          # Sync with Supabase user data
-│   │   └── signals.py           # Profile auto-create on user sync
-│   ├── employees/               # Employee profiles & roles
-│   │   ├── models.py            # HR-specific info
-│   │   ├── serializers.py
-│   │   ├── views.py
-│   │   ├── urls.py
-│   │   └── services.py
-│   ├── tasks/                   # Task management
-│   │   ├── models.py
-│   │   ├── serializers.py
-│   │   ├── views.py
-│   │   ├── urls.py
-│   │   └── services.py
-│   ├── leaves/                  # Leave requests
-│   │   ├── models.py
-│   │   ├── serializers.py
-│   │   ├── views.py
-│   │   └── services.py
-│   ├── approvals/               # Approvals workflow
-│   │   ├── models.py
-│   │   ├── serializers.py
-│   │   ├── views.py
-│   │   └── services.py
-│   ├── chat/                    # Messaging via Supabase Realtime
-│   │   ├── supabase_chat.py     # Wrapper for saving/querying
-│   │   └── sync.py              # (optional) sync Supabase chats → Django
-│   └── files/                   # File uploads (Supabase storage)
-│       ├── supabase_storage.py
-│       └── utils.py
-├── integrations/                # Third-party integrations
-│   ├── supabase_client.py       # Supabase SDK client
-│   ├── auth_backend.py          # DRF authentication via Supabase JWT
-│   ├── auth_sync.py             # Sync Supabase users <-> Django users
-│   └── notifications.py         # Email/Slack/Push hooks
-├── core/                        # Shared utilities
-│   ├── permissions.py
-│   ├── mixins.py
-│   ├── exceptions.py
-│   ├── pagination.py
-│   └── utils.py
-├── scripts/
-│   ├── seed_data.py             # Generate dummy employees/tasks
-│   ├── sync_supabase_users.py   # Batch sync job
-│   └── nightly_reports.py       # Example cronjob
-├── static/
-├── media/
-└── tests/
-    ├── users/
-    ├── employees/
-    ├── tasks/
-    ├── leaves/
-    ├── approvals/
-    ├── chat/
-    └── files/
+apps/
+    <domain>/
+        domain/         # Pure business logic
+        application/    # Use cases
+        infrastructure/ # DB, external systems
+        presentation/   # DRF views, serializers
+        tests/
+
+core/
+    common/             # Shared utilities
+    infrastructure/     # Global infra configs
+    tasks/              # Background jobs
+
+integrations/
+    supabase/
+    auth/
+    notifications/
+
+api/
+    v1/
+
+config/
+    settings/
 ```
 
 ---
 
-# 🔑 **Detailed Responsibilities**
+# 🧠 Architectural Principles
 
-| Feature                  | Django (Business Logic)                                                                              | Supabase (Infra)                                                |
-| ------------------------ | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| **Auth**                 | - Uses Supabase JWT for all requests- Middleware verifies token- Optional: sync users into Django DB | - Handles sign up / login / password reset / OAuth- Issues JWTs |
-| **Profiles / Employees** | - Employee model (designation, salary, HR info)- Profile enrichment beyond Supabase User             | - Stores basic user identity (email, UID)                       |
-| **Tasks**                | - Task model, assignment, deadlines- Business rules: only managers assign tasks- Reporting           | - N/A                                                           |
-| **Leaves**               | - Leave request model- Validation (balance, approvals)- Audit logs                                   | - N/A                                                           |
-| **Approvals**            | - Approval workflows (leave, expense, promotion)- Multi-step logic                                   | - N/A                                                           |
-| **Chat / Messaging**     | - Optional: archive messages for compliance                                                          | - Supabase Realtime handles live chat + subscriptions           |
-| **Files**                | - Stores metadata (who uploaded, linked entity)- Maps file URLs into DB                              | - Supabase Storage handles upload, retrieval, public URLs       |
-| **Notifications**        | - Business logic for when to notify                                                                  | - Can send via Supabase functions or Django + third-party       |
+## 1️⃣ Modular Monolith
+
+Each domain (users, employees, leaves, etc.) is isolated and self-contained.
+
+## 2️⃣ Layered Design
+
+### Domain Layer
+
+* Business rules
+* No external API calls
+* No DRF logic
+
+### Application Layer
+
+* Use cases
+* Orchestration
+* Calls repositories and integrations
+
+### Infrastructure Layer
+
+* DB access
+* Supabase
+* External APIs
+* Email
+* Storage
+
+### Presentation Layer
+
+* DRF Views
+* Serializers
+* HTTP handling
 
 ---
 
-# ⚙️ **Core Integrations**
+# 🔌 Integrations
 
-### **1. Supabase Auth in Django (DRF backend)**
+External services are isolated under:
 
-`integrations/auth_backend.py`
+```
+integrations/
+```
 
-```python
-import jwt
-from rest_framework.authentication import BaseAuthentication
-from rest_framework import exceptions
-from django.contrib.auth import get_user_model
-from integrations.supabase_client import supabase
+This prevents infrastructure leakage into business logic.
 
-User = get_user_model()
+---
 
-class SupabaseAuthentication(BaseAuthentication):
-    def authenticate(self, request):
-        auth_header = request.headers.get("Authorization")
-        if not auth_header:
-            return None
-        
-        try:
-            token = auth_header.split(" ")[1]
-            payload = jwt.decode(token, options={"verify_signature": False})
-        except Exception:
-            raise exceptions.AuthenticationFailed("Invalid Supabase token")
+# 🔄 API Versioning
 
-        # Sync Supabase user into Django
-        user, _ = User.objects.get_or_create(
-            username=payload["sub"],
-            defaults={"email": payload.get("email", "")}
-        )
-        return (user, None)
+All APIs are versioned:
+
+```
+/api/v1/
+```
+
+This prevents breaking frontend/mobile clients in the future.
+
+---
+
+# 🧪 Testing Strategy
+
+Each app contains its own tests:
+
+```
+apps/<domain>/tests/
+```
+
+Test levels:
+
+* Unit tests (domain)
+* Service tests (application)
+* API tests (presentation)
+
+---
+
+# 🛠 Local Development
+
+### 1️⃣ Setup
+
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### 2️⃣ Environment
+
+Create `.env`:
+
+```
+DEBUG=True
+SECRET_KEY=your-secret
+DATABASE_URL=postgres://...
+```
+
+### 3️⃣ Run
+
+```bash
+python manage.py migrate
+python manage.py runserver
 ```
 
 ---
 
-### **2. Supabase Storage Wrapper**
+# 🏭 Production Notes
 
-`apps/files/supabase_storage.py`
-
-```python
-from integrations.supabase_client import supabase
-
-def upload_profile_pic(user_id: str, file_bytes: bytes):
-    path = f"profiles/{user_id}.jpg"
-    supabase.storage.from_("profile_pics").upload(path, file_bytes)
-    return supabase.storage.from_("profile_pics").get_public_url(path)
-```
+* Use PostgreSQL
+* Enable structured logging
+* Configure Sentry
+* Use Redis + Celery for background tasks
+* Use Gunicorn + Nginx
 
 ---
 
-### **3. Supabase Realtime Chat Wrapper**
+# 🔮 Future Roadmap
 
-`apps/chat/supabase_chat.py`
+Because of strict boundaries, modules can be extracted into microservices later:
 
-```python
-from integrations.supabase_client import supabase
+* leave-service
+* task-service
+* chat-service
 
-def send_message(room_id: str, sender_id: str, text: str):
-    return supabase.table("messages").insert({
-        "room_id": room_id,
-        "sender_id": sender_id,
-        "message": text
-    }).execute()
-
-def get_history(room_id: str):
-    return supabase.table("messages").select("*").eq("room_id", room_id).execute()
-```
+Without rewriting business logic.
 
 ---
 
-# 🔗 **Frontend Flow (React Native + Supabase + Django)**
+# 👥 Contributing
 
-1. **User Login/Signup** → Supabase Auth SDK → receive JWT.
-    
-2. **Authenticated API Requests** → Send `Authorization: Bearer <JWT>` → Django verifies token.
-    
-3. **HR Features (employees, tasks, leaves, approvals)** → Call Django API.
-    
-4. **Chat** → React Native connects **directly** to Supabase Realtime.
-    
-5. **Files** → Upload to Supabase Storage → Save URL in Django DB.
-    
+Follow these rules:
+
+* No cross-app direct imports
+* No business logic inside views
+* No external API calls inside domain layer
+* Always create use-cases in application layer
 
 ---
 
-# ✅ **Benefits of this Split**
+# 📄 License
 
-- **Supabase covers infra** → Auth, Realtime, Storage = no heavy lifting.
-    
-- **Django covers business logic** → HR rules, workflows, reports = strong backend.
-    
-- **Scalable & Industry-standard** → Feature-based apps, integrations isolated, clean auth layer.
-    
-- **Easier DevOps** → Supabase reduces infra complexity, Django runs as an API service.
-    
-
----
-
+MIT
